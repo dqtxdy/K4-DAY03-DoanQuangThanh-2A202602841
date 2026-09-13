@@ -10,10 +10,10 @@
 
 | Tiêu chí Đánh giá | Mức độ (1 - 5) | Giải trình chi tiết lý do chọn điểm |
 | :--- | :---: | :--- |
-| **1. Multi-step Reasoning** | 3 / 5 | Bài toán có yêu cầu chia nhỏ nhiều bước suy luận nối tiếp nhau không? |
-| **2. Tool Interaction** | 2 / 5 | Hệ thống có cần kết nối với MCP Server / Cơ sở dữ liệu bên ngoài không? |
-| **3. Dynamic Decision** | 5 / 5 | Bước tiếp theo có phụ thuộc vào kết quả quan sát bước trước không? |
-| **4. Long Horizon Goal** | 5 / 5 | Hệ thống có phải giữ mục tiêu xuyên suốt qua nhiều lượt xử lý không? |
+| **1. Multi-step Reasoning** | 3 / 5 | Agent phải phân tích yêu cầu đặt phòng, xác định thời gian, loại phòng và thiết bị cần dùng, sau đó kiểm tra thông tin liên quan trước khi tạo booking. Tuy nhiên, quy trình hiện tại chưa có nhiều nhánh nghiệp vụ phức tạp nên mức điểm phù hợp là 3/5. |
+| **2. Tool Interaction** | 2 / 5 | Agent có giao tiếp với MCP Server để gọi các công cụ tra cứu và booking. Tuy nhiên, phiên bản bài lab hiện mô phỏng dữ liệu và chỉ sử dụng số lượng tool giới hạn, chưa kết nối với hệ thống quản lý phòng, lịch hoặc thiết bị thực tế nên chấm 2/5. |
+| **3. Dynamic Decision** | 5 / 5 | Quyết định tiếp theo phụ thuộc trực tiếp vào kết quả quan sát: nếu phòng hoặc thiết bị còn trống thì tiếp tục tạo booking; nếu không phù hợp, Agent phải thông báo hoặc đề xuất phương án khác. Trường hợp mã sinh viên không tồn tại cũng phải dừng quy trình và không tạo booking. |
+| **4. Long Horizon Goal** | 5 / 5 | Agent phải duy trì mục tiêu đặt đúng phòng và thiết bị trong suốt chuỗi xử lý: tiếp nhận yêu cầu, thu thập thông tin, gọi tool qua MCP Server, kiểm tra kết quả và trả về xác nhận booking. Mục tiêu được giữ xuyên suốt qua nhiều bước ReAct trước khi hoàn tất. |
 | **TỔNG ĐIỂM AGENTIC FIT** | **15 / 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
 
 ---
