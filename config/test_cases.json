@@ -1,37 +1,68 @@
 [
   {
     "id": "TC01",
-    "type": "direct_query",
-    "question": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
-    "complexity": "Low"
+    "type": "direct_response",
+    "question": "Bạn có thể hỗ trợ tôi những gì khi cần đặt phòng họp?",
+    "expected_behavior": "Agent trả lời trực tiếp về khả năng kiểm tra phòng, thiết bị và booking; không gọi tool.",
+    "complexity": "Low",
+    "expectations": {
+      "expected_tool_sequence": [],
+      "max_tool_calls": 0,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC02",
-    "type": "single_tool_query",
-    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
-    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'academic_query' với mã SV2026001.",
-    "complexity": "Medium"
+    "type": "availability_lookup",
+    "question": "Kiểm tra giúp tôi phòng trống cho 8 người lúc 09:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu.",
+    "expected_behavior": "Agent gọi check_room_availability, trả về các phòng đủ sức chứa, có máy chiếu và không bị trùng lịch; không tạo booking.",
+    "complexity": "Medium",
+    "expectations": {
+      "expected_tool_sequence": ["check_room_availability"],
+      "expected_final_status": "SUCCESS",
+      "max_tool_calls": 1,
+      "must_not_book": true,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC03",
-    "type": "appointment_booking",
-    "question": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
-    "expected_behavior": "Agent tự động phát sinh Tool Call 'schedule_appointment' với đúng mã sinh viên, thời gian, người phụ trách và loại phòng/thiết bị cần đặt.",
-    "complexity": "Medium"
+    "type": "explicit_room_booking",
+    "question": "Đặt phòng R201 lúc 13:00 ngày 15/09/2026 trong 60 phút cho Nguyễn Văn An để họp nhóm.",
+    "expected_behavior": "Agent gọi create_room_booking cho R201; backend kiểm tra phòng và trả về booking thành công với mã không trùng lặp.",
+    "complexity": "Medium",
+    "expectations": {
+      "expected_tool_sequence": ["create_room_booking"],
+      "expected_final_status": "SUCCESS",
+      "max_tool_calls": 1,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC04",
-    "type": "multi_step_reasoning",
-    "question": "Tôi cần tổ chức buổi họp cho sinh viên SV2026001 lúc 09:00 ngày 16/09/2026. Hãy kiểm tra thông tin người phụ trách của sinh viên, sau đó đặt một phòng họp có máy chiếu.",
-    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: tra cứu thông tin sinh viên/người phụ trách trước, sau đó gọi 'schedule_appointment' để đặt phòng họp và thiết bị.",
-    "complexity": "High"
+    "type": "multi_step_booking",
+    "question": "Tôi cần phòng cho 10 người lúc 14:00 ngày 15/09/2026 trong 90 phút, cần máy chiếu. Hãy tìm phòng phù hợp rồi đặt luôn giúp tôi, người đặt là Nguyễn Văn An.",
+    "expected_behavior": "Agent trước hết gọi check_room_availability, xem Observation, chọn một room_id thực sự phù hợp rồi gọi create_room_booking và chỉ trả lời sau khi booking thành công.",
+    "complexity": "High",
+    "expectations": {
+      "expected_tool_sequence": ["check_room_availability", "create_room_booking"],
+      "expected_final_status": "SUCCESS",
+      "min_tool_calls": 2,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC05",
-    "type": "edge_case_handling",
-    "question": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV9999999 vào lúc 10:00 ngày 17/09/2026, người phụ trách là Trần Thị Bình.",
-    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool, không tạo booking cho mã sinh viên không tồn tại và đưa ra phản hồi lịch sự, chính xác, không bịa đặt dữ liệu.",
-    "complexity": "Medium"
+    "type": "negative_capacity_case",
+    "question": "Tôi cần phòng cho 25 người lúc 14:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu. Hãy tìm và đặt phòng nếu có.",
+    "expected_behavior": "Agent nhận NO_AVAILABLE_ROOM vì không có phòng đủ sức chứa, không gọi create_room_booking và giải thích rõ rằng booking chưa được tạo.",
+    "complexity": "Medium",
+    "expectations": {
+      "expected_tool_sequence": ["check_room_availability"],
+      "expected_final_status": "NO_AVAILABLE_ROOM",
+      "max_tool_calls": 1,
+      "must_not_book": true,
+      "must_have_final_answer": true
+    }
   }
 ]

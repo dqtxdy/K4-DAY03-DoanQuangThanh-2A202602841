@@ -1,73 +1,50 @@
-# 📊 BÁO CÁO THU HOẠCH NGHIỆM THU BÀI LAB 3 (BƯỚC 3 — SUBMISSION ARTIFACT)
+# Báo cáo nghiệm thu Facilities Agent
 
-> **Họ và Tên Học viên:** Đoàn Quang Thanh  
-> **Mã Sinh Viên / Mã Học viên:** 2A202602841
-> **Chủ đề Lựa chọn:** *Trợ lý Đặt Phòng họp & Thiết bị (Facilities Agent):* Kiểm tra lịch phòng trống, thiết bị và tạo booking phòng họp.
+**Học viên:** Đoàn Quang Thanh
+**MSSV:** 2A202602841
+**Chủ đề:** Trợ lý Đặt Phòng họp & Thiết bị (Facilities Agent)
 
----
+## 1. Agentic Fit Scoring Matrix
 
-## 1. BẢNG CHẤM ĐIỂM AGENTIC FIT SCORING MATRIX (ĐÁNH GIÁ CHỦ ĐỀ)
-
-| Tiêu chí Đánh giá | Mức độ (1 - 5) | Giải trình chi tiết lý do chọn điểm |
+| Tiêu chí | Điểm | Giải trình |
 | :--- | :---: | :--- |
-| **1. Multi-step Reasoning** | 3 / 5 | Agent phải phân tích yêu cầu đặt phòng, xác định thời gian, loại phòng và thiết bị cần dùng, sau đó kiểm tra thông tin liên quan trước khi tạo booking. Tuy nhiên, quy trình hiện tại chưa có nhiều nhánh nghiệp vụ phức tạp nên mức điểm phù hợp là 3/5. |
-| **2. Tool Interaction** | 2 / 5 | Agent có giao tiếp với MCP Server để gọi các công cụ tra cứu và booking. Tuy nhiên, phiên bản bài lab hiện mô phỏng dữ liệu và chỉ sử dụng số lượng tool giới hạn, chưa kết nối với hệ thống quản lý phòng, lịch hoặc thiết bị thực tế nên chấm 2/5. |
-| **3. Dynamic Decision** | 5 / 5 | Quyết định tiếp theo phụ thuộc trực tiếp vào kết quả quan sát: nếu phòng hoặc thiết bị còn trống thì tiếp tục tạo booking; nếu không phù hợp, Agent phải thông báo hoặc đề xuất phương án khác. Trường hợp mã sinh viên không tồn tại cũng phải dừng quy trình và không tạo booking. |
-| **4. Long Horizon Goal** | 5 / 5 | Agent phải duy trì mục tiêu đặt đúng phòng và thiết bị trong suốt chuỗi xử lý: tiếp nhận yêu cầu, thu thập thông tin, gọi tool qua MCP Server, kiểm tra kết quả và trả về xác nhận booking. Mục tiêu được giữ xuyên suốt qua nhiều bước ReAct trước khi hoàn tất. |
-| **TỔNG ĐIỂM AGENTIC FIT** | **15 / 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
+| Multi-step Reasoning | 4 / 5 | Agent phải trích xuất yêu cầu, kiểm tra phòng rồi đọc Observation để chọn phòng trước khi booking; một số yêu cầu đơn giản chỉ cần một tool. |
+| Tool Interaction | 5 / 5 | Quy trình sử dụng hai tool qua MCP Server: một tool kiểm tra dữ liệu phòng live/mock và một tool tạo booking có xác thực độc lập. |
+| Dynamic Decision Making | 4 / 5 | Kết quả availability quyết định việc có được gọi booking hay không và room_id nào được chọn; các lỗi như thiếu phòng sẽ dừng quy trình. |
+| Long-Horizon Goal | 3 / 5 | Mục tiêu được giữ qua nhiều bước trong một phiên ReAct, nhưng quy trình booking hiện vẫn ngắn và không yêu cầu theo dõi dài hạn qua nhiều phiên. |
+| **Tổng** | **16 / 20** | Facilities Agent phù hợp với Agentic System vì có tool use, Observation và quyết định phụ thuộc dữ liệu. |
 
----
+## 2. Thiết kế và an toàn backend
 
-## 2. TRÍCH XUẤT KẾT QUẢ WATERFALL TRACE LOG (SAU KHI CHẠY TEST SUITE TRÊN API THẬT)
+Mock facilities database có ba phòng: R101 (6 chỗ, bảng trắng), R201 (12 chỗ, máy chiếu và bảng trắng), R301 (20 chỗ, máy chiếu, bảng trắng và video conference). Availability kiểm tra đồng thời:
 
-> ⚠️ **YÊU CẦU NGHIỆM THU:** Mở tệp `.env` điền `GEMINI_API_KEY` (hoặc `OPENAI_API_KEY`) để kết nối LLM thật trước khi thực thi `python src/app.py --all`. Bài nộp chỉ dùng Mock Offline Provider sẽ không đạt điểm nghiệm thực tế.
+- định dạng thời gian và thời lượng;
+- sức chứa;
+- thiết bị bắt buộc;
+- xung đột theo khoảng `[start, end)`.
 
-Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.json` sinh ra từ phản hồi LLM API thật:
+`create_room_booking` kiểm tra lại phòng, thời gian, sức chứa, thiết bị và conflict trước khi ghi reservation. Booking ID dùng bộ đếm deterministic trong phiên, không bị hard-code cố định.
 
-```json
-[
-   {
-    "step": 1,
-    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
-    "action_type": "TOOL_EXECUTION",
-    "tool_name": "schedule_appointment",
-    "arguments": {
-      "advisor_name": "Nguyễn Văn An",
-      "datetime_str": "14:00 15/09/2026",
-      "student_id": "SV2026001",
-      "facility_type": "phòng họp có máy chiếu"
-    },
-    "observation": {
-      "status": "SUCCESS",
-      "booking_id": "BK-SV2026001-99",
-      "student_id": "SV2026001",
-      "datetime": "14:00 15/09/2026",
-      "advisor": "Nguyễn Văn An",
-      "facility": "phòng họp có máy chiếu",
-      "message": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV2026001 vào lúc 14:00 15/09/2026."
-    },
-    "latency_ms": 2395.8
-  },
-  {
-    "step": 2,
-    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
-    "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV2026001 vào lúc 14:00 15/09/2026.",
-    "latency_ms": 10.0
-  },
-]
-```
+## 3. Kết quả test suite
 
----
+Trace được lưu tại [`docs/trace_waterfall.json`](trace_waterfall.json). Lần chạy deterministic gần nhất dùng `LLM_PROVIDER=mock` đạt **5/5 PASS**, với tổng cộng **5 tool calls**.
 
-## 3. TỔNG KẾT KẾT QUẢ NGHIỆM THU & NỘP BÀI
+| Test | Kết quả | Tool sequence | Bằng chứng |
+| :--- | :---: | :--- | :--- |
+| TC01 | PASS | Không gọi tool | Câu hỏi về khả năng hỗ trợ nhận câu trả lời trực tiếp. |
+| TC02 | PASS | `check_room_availability` | Trả về R201 và R301; không tạo booking. |
+| TC03 | PASS | `create_room_booking` | R201 được xác thực và tạo `BK-20260915-001`. |
+| TC04 | PASS | `check_room_availability → create_room_booking` | Observation trả về R301, sau đó Agent gọi booking cho R301 và nhận `BK-20260915-002`. |
+| TC05 | PASS | `check_room_availability` | 25 người vượt sức chứa; nhận `NO_AVAILABLE_ROOM`, không gọi booking. |
 
-- [x] Đã điền API Key thật trong `.env` và xác nhận Agent chạy mượt mà trên LLM API thật (Gemini/OpenAI).
-- **Tổng số Test Cases đã chạy thành công:** 5 / 5 test cases.
-- **Số lượt gọi Tool qua MCP Server chính xác:** ___ lượt.
-- **Kết quả đẩy Repo nộp bài:** [ ] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
+## 4. Bằng chứng ReAct và negative case
 
----
+TC04 có ba sự kiện theo đúng thứ tự trong trace: tool kiểm tra ở step 1, tool booking ở step 2, final answer ở step 3. Observation của step 1 chứa `available_rooms` với R301; `room_id` ở bước booking được chọn từ chính Observation đó.
 
-> ✅ **HOÀN TẤT NỘP BÀI:** Sao chép đường link GitHub Repository cá nhân của bạn và dán vào ô nộp bài trên hệ thống LMS VLearn để hoàn tất Bài Lab 3!
+TC05 nhận `NO_AVAILABLE_ROOM` vì không phòng nào có sức chứa 25 người. Agent dừng sau Observation, evaluator xác nhận không có `create_room_booking` và không có `booking_id` thành công.
+
+## 5. Provider và trạng thái nộp bài
+
+Code vẫn hỗ trợ Gemini native function calling, OpenAI native function calling và Mock Offline cho kiểm thử deterministic. Gemini đã phản hồi ở một số lượt trong lần thử live, nhưng tài khoản free-tier hết quota giữa suite (`429 RESOURCE_EXHAUSTED`), nên các lượt còn lại đã fallback về Mock và không thể dùng làm nghiệm thu toàn bộ LLM thật. Trace hiện tại được tạo lại bằng `LLM_PROVIDER=mock`; cần chạy lại trên môi trường có quota trước khi nộp nghiệm thu live.
+
+Trạng thái commit/push GitHub chưa được xác minh trong môi trường này.
