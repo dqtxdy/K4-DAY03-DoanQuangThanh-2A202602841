@@ -1,130 +1,272 @@
 [
   {
+    "test_case_id": "TC01",
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "query": "Bạn có thể hỗ trợ tôi những gì khi cần đặt phòng họp?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
-    "output": "Chào bạn, tôi là Trợ lý Tác tử Đặt Phòng họp & Thiết bị của Đại học VinUni. Về câu hỏi liên quan đến quy chế học vụ cơ bản, tôi không có thông tin này. Tôi chỉ có thể hỗ trợ bạn trong việc tra cứu thông tin học vụ của sinh viên, kiểm tra phòng trống, thiết bị và tạo booking phòng họp.\n\nBạn có muốn tôi giúp gì về các vấn đề này không?",
-    "latency_ms": 2421.73
+    "decision": "Gemini trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
+    "output": "Tôi có thể giúp bạn kiểm tra phòng họp còn trống và đặt phòng họp. Bạn cần cung cấp thông tin về thời gian, thời lượng, số lượng người tham dự và các thiết bị cần thiết.",
+    "latency_ms": 2813.07,
+    "provider": "GeminiProvider"
   },
   {
+    "test_case_id": "TC02",
     "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Kiểm tra giúp tôi phòng trống cho 8 người lúc 09:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "decision": "Gemini chọn gọi check_room_availability với các tham số đã trích xuất.",
+    "tool_name": "check_room_availability",
     "arguments": {
-      "student_id": "SV2026001"
+      "attendee_count": 8,
+      "required_equipment": [
+        "máy chiếu"
+      ],
+      "datetime_str": "09:00 15/09/2026",
+      "duration_minutes": 60
     },
     "observation": {
       "status": "SUCCESS",
-      "student_id": "SV2026001",
-      "data": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
-      }
+      "requested": {
+        "datetime": "09:00 15/09/2026",
+        "duration_minutes": 60,
+        "attendee_count": 8,
+        "required_equipment": [
+          "máy chiếu"
+        ]
+      },
+      "available_rooms": [
+        {
+          "room_id": "R201",
+          "name": "Phòng họp R201",
+          "capacity": 12,
+          "equipment": [
+            "máy chiếu",
+            "bảng trắng"
+          ],
+          "location": "Tòa B"
+        },
+        {
+          "room_id": "R301",
+          "name": "Phòng họp R301",
+          "capacity": 20,
+          "equipment": [
+            "máy chiếu",
+            "bảng trắng",
+            "video conference"
+          ],
+          "location": "Tòa C"
+        }
+      ],
+      "message": "Tìm thấy 2 phòng phù hợp."
     },
-    "latency_ms": 1503.87
+    "latency_ms": 13739.44,
+    "llm_latency_ms": 13738.43,
+    "tool_latency_ms": 1.01,
+    "provider": "GeminiProvider"
   },
   {
+    "test_case_id": "TC02",
     "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Kiểm tra giúp tôi phòng trống cho 8 người lúc 09:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Kết quả tra cứu cho sinh viên SV2026001 (Nguyễn Văn An): Lớp AI-K4, GPA: 3.85, Email: an.nv@vinuni.edu.vn, Trạng thái: Đang học, Cố vấn: PGS.TS Nguyễn Văn A.",
-    "latency_ms": 10.0
+    "decision": "Gemini trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
+    "output": "Có 2 phòng trống phù hợp với yêu cầu của bạn:\n*   **Phòng họp R201** (Tòa B): sức chứa 12 người, có máy chiếu và bảng trắng.\n*   **Phòng họp R301** (Tòa C): sức chứa 20 người, có máy chiếu, bảng trắng và thiết bị video conference.\n\nBạn muốn đặt phòng nào?",
+    "latency_ms": 12399.91,
+    "provider": "GeminiProvider"
   },
   {
+    "test_case_id": "TC03",
     "step": 1,
-    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
+    "query": "Đặt phòng R201 lúc 13:00 ngày 15/09/2026 trong 60 phút cho Nguyễn Văn An để họp nhóm.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "schedule_appointment",
+    "decision": "Gemini chọn gọi create_room_booking với các tham số đã trích xuất.",
+    "tool_name": "create_room_booking",
     "arguments": {
-      "advisor_name": "Nguyễn Văn An",
+      "requester_name": "Nguyễn Văn An",
+      "datetime_str": "13:00 15/09/2026",
+      "duration_minutes": 60,
+      "room_id": "R201",
+      "purpose": "họp nhóm"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "BK-20260915-001",
+      "room": {
+        "room_id": "R201",
+        "name": "Phòng họp R201",
+        "capacity": 12,
+        "equipment": [
+          "máy chiếu",
+          "bảng trắng"
+        ],
+        "location": "Tòa B"
+      },
+      "datetime": "13:00 15/09/2026",
+      "duration_minutes": 60,
+      "attendee_count": 1,
+      "required_equipment": [],
+      "requester_name": "Nguyễn Văn An",
+      "purpose": "họp nhóm",
+      "message": "Booking BK-20260915-001 đã được tạo cho R201."
+    },
+    "latency_ms": 13033.7,
+    "llm_latency_ms": 13033.56,
+    "tool_latency_ms": 0.14,
+    "provider": "GeminiProvider"
+  },
+  {
+    "test_case_id": "TC03",
+    "step": 2,
+    "query": "Đặt phòng R201 lúc 13:00 ngày 15/09/2026 trong 60 phút cho Nguyễn Văn An để họp nhóm.",
+    "action_type": "FINAL_ANSWER",
+    "decision": "Gemini trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
+    "output": "Phòng R201 đã được đặt thành công lúc 13:00 ngày 15/09/2026 trong 60 phút cho Nguyễn Văn An với mục đích họp nhóm. Mã booking của bạn là BK-20260915-001.",
+    "latency_ms": 14134.1,
+    "provider": "GeminiProvider"
+  },
+  {
+    "test_case_id": "TC04",
+    "step": 1,
+    "query": "Tôi cần phòng cho 10 người lúc 14:00 ngày 15/09/2026 trong 90 phút, cần máy chiếu. Hãy tìm phòng phù hợp rồi đặt luôn giúp tôi, người đặt là Nguyễn Văn An.",
+    "action_type": "TOOL_EXECUTION",
+    "decision": "Gemini chọn gọi check_room_availability với các tham số đã trích xuất.",
+    "tool_name": "check_room_availability",
+    "arguments": {
+      "required_equipment": [
+        "máy chiếu"
+      ],
+      "duration_minutes": 90,
+      "attendee_count": 10,
+      "datetime_str": "14:00 15/09/2026"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "requested": {
+        "datetime": "14:00 15/09/2026",
+        "duration_minutes": 90,
+        "attendee_count": 10,
+        "required_equipment": [
+          "máy chiếu"
+        ]
+      },
+      "available_rooms": [
+        {
+          "room_id": "R301",
+          "name": "Phòng họp R301",
+          "capacity": 20,
+          "equipment": [
+            "máy chiếu",
+            "bảng trắng",
+            "video conference"
+          ],
+          "location": "Tòa C"
+        }
+      ],
+      "message": "Tìm thấy 1 phòng phù hợp."
+    },
+    "latency_ms": 13448.51,
+    "llm_latency_ms": 13448.35,
+    "tool_latency_ms": 0.16,
+    "provider": "GeminiProvider"
+  },
+  {
+    "test_case_id": "TC04",
+    "step": 2,
+    "query": "Tôi cần phòng cho 10 người lúc 14:00 ngày 15/09/2026 trong 90 phút, cần máy chiếu. Hãy tìm phòng phù hợp rồi đặt luôn giúp tôi, người đặt là Nguyễn Văn An.",
+    "action_type": "TOOL_EXECUTION",
+    "decision": "Gemini chọn gọi create_room_booking với các tham số đã trích xuất.",
+    "tool_name": "create_room_booking",
+    "arguments": {
+      "room_id": "R301",
+      "duration_minutes": 90,
+      "purpose": "Cuộc họp",
+      "attendee_count": 10,
       "datetime_str": "14:00 15/09/2026",
-      "student_id": "SV2026001",
-      "facility_type": "phòng họp có máy chiếu"
+      "required_equipment": [
+        "máy chiếu"
+      ],
+      "requester_name": "Nguyễn Văn An"
     },
     "observation": {
       "status": "SUCCESS",
-      "booking_id": "BK-SV2026001-99",
-      "student_id": "SV2026001",
+      "booking_id": "BK-20260915-002",
+      "room": {
+        "room_id": "R301",
+        "name": "Phòng họp R301",
+        "capacity": 20,
+        "equipment": [
+          "máy chiếu",
+          "bảng trắng",
+          "video conference"
+        ],
+        "location": "Tòa C"
+      },
       "datetime": "14:00 15/09/2026",
-      "advisor": "Nguyễn Văn An",
-      "facility": "phòng họp có máy chiếu",
-      "message": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV2026001 vào lúc 14:00 15/09/2026."
+      "duration_minutes": 90,
+      "attendee_count": 10,
+      "required_equipment": [
+        "máy chiếu"
+      ],
+      "requester_name": "Nguyễn Văn An",
+      "purpose": "Cuộc họp",
+      "message": "Booking BK-20260915-002 đã được tạo cho R301."
     },
-    "latency_ms": 2395.8
+    "latency_ms": 11657.24,
+    "llm_latency_ms": 11657.1,
+    "tool_latency_ms": 0.14,
+    "provider": "GeminiProvider"
   },
   {
-    "step": 2,
-    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
+    "test_case_id": "TC04",
+    "step": 3,
+    "query": "Tôi cần phòng cho 10 người lúc 14:00 ngày 15/09/2026 trong 90 phút, cần máy chiếu. Hãy tìm phòng phù hợp rồi đặt luôn giúp tôi, người đặt là Nguyễn Văn An.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV2026001 vào lúc 14:00 15/09/2026.",
-    "latency_ms": 10.0
+    "decision": "Gemini trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
+    "output": "Bạn đã đặt phòng họp R301 thành công vào lúc 14:00 ngày 15/09/2026 trong 90 phút, với 10 người tham dự và có máy chiếu. Mã đặt phòng của bạn là BK-20260915-002.",
+    "latency_ms": 13752.45,
+    "provider": "GeminiProvider"
   },
   {
+    "test_case_id": "TC05",
     "step": 1,
-    "query": "Tôi cần tổ chức buổi họp cho sinh viên SV2026001 lúc 09:00 ngày 16/09/2026. Hãy kiểm tra thông tin người phụ trách của sinh viên, sau đó đặt một phòng họp có máy chiếu.",
+    "query": "Tôi cần phòng cho 25 người lúc 14:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu. Hãy tìm và đặt phòng nếu có.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "decision": "Gemini chọn gọi check_room_availability với các tham số đã trích xuất.",
+    "tool_name": "check_room_availability",
     "arguments": {
-      "student_id": "SV2026001"
+      "duration_minutes": 60,
+      "attendee_count": 25,
+      "datetime_str": "14:00 15/09/2026",
+      "required_equipment": [
+        "máy chiếu"
+      ]
     },
     "observation": {
-      "status": "SUCCESS",
-      "student_id": "SV2026001",
-      "data": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
-      }
+      "status": "NO_AVAILABLE_ROOM",
+      "requested": {
+        "datetime": "14:00 15/09/2026",
+        "duration_minutes": 60,
+        "attendee_count": 25,
+        "required_equipment": [
+          "máy chiếu"
+        ]
+      },
+      "available_rooms": [],
+      "message": "Không có phòng phù hợp: hệ thống đã kiểm tra sức chứa, thiết bị và xung đột lịch."
     },
-    "latency_ms": 2823.22
+    "latency_ms": 11975.51,
+    "llm_latency_ms": 11975.41,
+    "tool_latency_ms": 0.1,
+    "provider": "GeminiProvider"
   },
   {
+    "test_case_id": "TC05",
     "step": 2,
-    "query": "Tôi cần tổ chức buổi họp cho sinh viên SV2026001 lúc 09:00 ngày 16/09/2026. Hãy kiểm tra thông tin người phụ trách của sinh viên, sau đó đặt một phòng họp có máy chiếu.",
+    "query": "Tôi cần phòng cho 25 người lúc 14:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu. Hãy tìm và đặt phòng nếu có.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Kết quả tra cứu cho sinh viên SV2026001 (Nguyễn Văn An): Lớp AI-K4, GPA: 3.85, Email: an.nv@vinuni.edu.vn, Trạng thái: Đang học, Cố vấn: PGS.TS Nguyễn Văn A.",
-    "latency_ms": 10.0
-  },
-  {
-    "step": 1,
-    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV9999999 vào lúc 10:00 ngày 17/09/2026, người phụ trách là Trần Thị Bình.",
-    "action_type": "TOOL_EXECUTION",
-    "tool_name": "schedule_appointment",
-    "arguments": {
-      "advisor_name": "Trần Thị Bình",
-      "student_id": "SV9999999",
-      "datetime_str": "10:00 17/09/2026",
-      "facility_type": "phòng họp có máy chiếu"
-    },
-    "observation": {
-      "status": "SUCCESS",
-      "booking_id": "BK-SV9999999-99",
-      "student_id": "SV9999999",
-      "datetime": "10:00 17/09/2026",
-      "advisor": "Trần Thị Bình",
-      "facility": "phòng họp có máy chiếu",
-      "message": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV9999999 vào lúc 10:00 17/09/2026."
-    },
-    "latency_ms": 1950.35
-  },
-  {
-    "step": 2,
-    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV9999999 vào lúc 10:00 ngày 17/09/2026, người phụ trách là Trần Thị Bình.",
-    "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV9999999 vào lúc 10:00 17/09/2026.",
-    "latency_ms": 10.0
+    "decision": "Gemini trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
+    "output": "Rất tiếc, không có phòng nào phù hợp với yêu cầu của bạn về số người, thời gian và thiết bị.",
+    "latency_ms": 13214.82,
+    "provider": "GeminiProvider"
   }
 ]

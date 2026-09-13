@@ -56,7 +56,7 @@ def run_react_agent(
     tool_calls: List[str] = []
     last_observation: Dict[str, Any] | None = None
     final_answer = ""
-    provider_fallbacks = []
+    provider_errors = []
 
     print(f"\n🤖 [FACILITIES AGENT] Câu hỏi: {user_query}")
     for step in range(1, MAX_ITERATIONS + 1):
@@ -70,10 +70,10 @@ def run_react_agent(
         llm_latency_ms = round((time.perf_counter() - llm_started) * 1000, 2)
         decision = response.get("decision", "Model returned a response.")
         provider_info = {"provider": provider.__class__.__name__}
-        if response.get("_fallback"):
-            reason = response.get("_fallback_reason", "provider error")
-            provider_fallbacks.append(reason)
-            provider_info["provider_fallback"] = reason
+        if response.get("provider_error"):
+            reason = response["provider_error"]
+            provider_errors.append(reason)
+            provider_info["provider_error"] = reason
         print(f"🧠 [Decision]: {decision}")
 
         if response.get("type") == "text":
@@ -92,13 +92,13 @@ def run_react_agent(
             break
 
         if response.get("type") != "tool_call":
-            final_answer = "Agent không nhận được phản hồi hợp lệ từ model."
+            final_answer = response.get("content", "Agent không nhận được phản hồi hợp lệ từ model.")
             trace.append({
                 "test_case_id": test_id,
                 "step": step,
                 "query": user_query,
                 "action_type": "ERROR",
-                "decision": "Provider returned an unsupported response type.",
+                "decision": decision,
                 "output": final_answer,
                 "latency_ms": llm_latency_ms,
                 **provider_info,
@@ -158,7 +158,7 @@ def run_react_agent(
         "final_answer": final_answer,
         "tool_calls": tool_calls,
         "last_observation": last_observation or {},
-        "provider_fallbacks": provider_fallbacks,
+        "provider_errors": provider_errors,
     }
 
 
@@ -196,6 +196,26 @@ def evaluate_test_case(test_case: Dict[str, Any], result: Dict[str, Any]) -> Dic
     if expectations.get("must_have_final_answer") and not result["final_answer"]:
         passed = False
         reasons.append("missing final answer")
+    if result.get("provider_errors"):
+        passed = False
+        reasons.append("live provider error")
+    if expectations.get("booking_room_must_come_from_availability"):
+        availability_event = next(
+            (event for event in result["trace"] if event.get("tool_name") == "check_room_availability"),
+            None,
+        )
+        booking_event = next(
+            (event for event in result["trace"] if event.get("tool_name") == "create_room_booking"),
+            None,
+        )
+        available_ids = {
+            room.get("room_id")
+            for room in (availability_event or {}).get("observation", {}).get("available_rooms", [])
+        }
+        booked_room = (booking_event or {}).get("arguments", {}).get("room_id")
+        if not availability_event or not booking_event or booked_room not in available_ids:
+            passed = False
+            reasons.append("booked room was not selected from availability observation")
     return {"id": test_case["id"], "passed": passed, "reasons": reasons, "tool_calls": tool_calls, "status": actual_status}
 
 

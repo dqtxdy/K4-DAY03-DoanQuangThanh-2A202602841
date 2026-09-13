@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
@@ -25,6 +26,25 @@ class BaseLLMProvider:
         system_prompt: str = "",
     ) -> Dict[str, Any]:
         raise NotImplementedError
+
+
+class UnavailableProvider(BaseLLMProvider):
+    """Represents a requested live provider whose credential is unavailable."""
+
+    def __init__(self, provider_name: str, message: str):
+        self.model_name = provider_name
+        self.message = message
+
+    def generate(self, prompt: str, system_prompt: str = "") -> str:
+        return self.message
+
+    def generate_with_tools(self, messages, tools_schema, system_prompt=""):
+        return {
+            "type": "error",
+            "content": self.message,
+            "decision": "Live provider is unavailable; no tool call was made.",
+            "provider_error": self.message,
+        }
 
 
 def _conversation_text(messages: List[Dict[str, str]]) -> str:
@@ -157,13 +177,23 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self, api_key: str | None = None, model: str | None = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         self.model_name = model or os.getenv("LLM_MODEL") or "gemini-2.5-flash"
+        self.min_request_interval_seconds = float(os.getenv("LLM_MIN_REQUEST_INTERVAL_SECONDS", "13"))
+        self._last_request_at = 0.0
+
+    def _throttle(self) -> None:
+        """Stay below Gemini's free-tier request-per-minute limit."""
+        remaining = self.min_request_interval_seconds - (time.monotonic() - self._last_request_at)
+        if remaining > 0:
+            time.sleep(remaining)
+        self._last_request_at = time.monotonic()
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         if not self.api_key or self.api_key == "your_gemini_api_key_here":
-            return MockOfflineProvider().generate(prompt, system_prompt)
+            return "[Gemini Error]: GEMINI_API_KEY chưa được cấu hình."
         try:
             from google import genai
             client = genai.Client(api_key=self.api_key)
+            self._throttle()
             response = client.models.generate_content(
                 model=self.model_name,
                 contents=prompt,
@@ -172,15 +202,21 @@ class GeminiProvider(BaseLLMProvider):
             return response.text or ""
         except Exception as exc:
             print(f"⚠️ [Gemini API Warning]: {exc}")
-            return MockOfflineProvider().generate(prompt, system_prompt)
+            return f"[Gemini Error]: {exc}"
 
     def generate_with_tools(self, messages, tools_schema, system_prompt=""):
         if not self.api_key or self.api_key == "your_gemini_api_key_here":
-            return MockOfflineProvider().generate_with_tools(messages, tools_schema, system_prompt)
+            return {
+                "type": "error",
+                "content": "GEMINI_API_KEY chưa được cấu hình.",
+                "decision": "Gemini không khả dụng; không gọi tool.",
+                "provider_error": "GEMINI_API_KEY chưa được cấu hình.",
+            }
         try:
             from google import genai
 
             client = genai.Client(api_key=self.api_key)
+            self._throttle()
             declarations = [
                 {
                     "name": tool["name"],
@@ -213,11 +249,13 @@ class GeminiProvider(BaseLLMProvider):
                 "decision": "Gemini trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
             }
         except Exception as exc:
-            print(f"⚠️ [Gemini API Warning]: {exc}. Chuyển sang Mock Offline cho lượt này.")
-            fallback = MockOfflineProvider().generate_with_tools(messages, tools_schema, system_prompt)
-            fallback["_fallback"] = True
-            fallback["_fallback_reason"] = str(exc)
-            return fallback
+            print(f"⚠️ [Gemini API Warning]: {exc}")
+            return {
+                "type": "error",
+                "content": f"Gemini API không thể hoàn tất yêu cầu: {exc}",
+                "decision": "Gemini API lỗi; không gọi tool hoặc fallback provider.",
+                "provider_error": str(exc),
+            }
 
 
 class OpenAIProvider(BaseLLMProvider):
@@ -229,7 +267,7 @@ class OpenAIProvider(BaseLLMProvider):
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         if not self.api_key or self.api_key == "your_openai_api_key_here":
-            return MockOfflineProvider().generate(prompt, system_prompt)
+            return "[OpenAI Error]: OPENAI_API_KEY chưa được cấu hình."
         try:
             from openai import OpenAI
             messages = ([{"role": "system", "content": system_prompt}] if system_prompt else [])
@@ -238,11 +276,16 @@ class OpenAIProvider(BaseLLMProvider):
             return response.choices[0].message.content or ""
         except Exception as exc:
             print(f"⚠️ [OpenAI API Warning]: {exc}")
-            return MockOfflineProvider().generate(prompt, system_prompt)
+            return f"[OpenAI Error]: {exc}"
 
     def generate_with_tools(self, messages, tools_schema, system_prompt=""):
         if not self.api_key or self.api_key == "your_openai_api_key_here":
-            return MockOfflineProvider().generate_with_tools(messages, tools_schema, system_prompt)
+            return {
+                "type": "error",
+                "content": "OPENAI_API_KEY chưa được cấu hình.",
+                "decision": "OpenAI không khả dụng; không gọi tool.",
+                "provider_error": "OPENAI_API_KEY chưa được cấu hình.",
+            }
         try:
             from openai import OpenAI
 
@@ -273,11 +316,13 @@ class OpenAIProvider(BaseLLMProvider):
                 "decision": "OpenAI trả lời bằng văn bản sau khi xem ngữ cảnh hiện tại.",
             }
         except Exception as exc:
-            print(f"⚠️ [OpenAI API Warning]: {exc}. Chuyển sang Mock Offline cho lượt này.")
-            fallback = MockOfflineProvider().generate_with_tools(messages, tools_schema, system_prompt)
-            fallback["_fallback"] = True
-            fallback["_fallback_reason"] = str(exc)
-            return fallback
+            print(f"⚠️ [OpenAI API Warning]: {exc}")
+            return {
+                "type": "error",
+                "content": f"OpenAI API không thể hoàn tất yêu cầu: {exc}",
+                "decision": "OpenAI API lỗi; không gọi tool hoặc fallback provider.",
+                "provider_error": str(exc),
+            }
 
 
 def get_llm_provider() -> BaseLLMProvider:
@@ -286,4 +331,6 @@ def get_llm_provider() -> BaseLLMProvider:
         return GeminiProvider()
     if provider_type == "openai" and os.getenv("OPENAI_API_KEY") not in (None, "", "your_openai_api_key_here"):
         return OpenAIProvider()
-    return MockOfflineProvider()
+    if provider_type == "mock":
+        return MockOfflineProvider()
+    return UnavailableProvider(provider_type, f"Provider '{provider_type}' chưa có API key hợp lệ.")

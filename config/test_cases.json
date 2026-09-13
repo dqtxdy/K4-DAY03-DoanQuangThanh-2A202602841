@@ -48,6 +48,7 @@
       "expected_tool_sequence": ["check_room_availability", "create_room_booking"],
       "expected_final_status": "SUCCESS",
       "min_tool_calls": 2,
+      "booking_room_must_come_from_availability": true,
       "must_have_final_answer": true
     }
   },

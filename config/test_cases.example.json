@@ -1,37 +1,69 @@
 [
   {
     "id": "TC01",
-    "type": "direct_query",
-    "question": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
-    "complexity": "Low"
+    "type": "direct_response",
+    "question": "Bạn có thể hỗ trợ tôi những gì khi cần đặt phòng họp?",
+    "expected_behavior": "Agent trả lời trực tiếp về khả năng kiểm tra phòng, thiết bị và booking; không gọi tool.",
+    "complexity": "Low",
+    "expectations": {
+      "expected_tool_sequence": [],
+      "max_tool_calls": 0,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC02",
-    "type": "single_tool_query",
-    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
-    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'academic_query' với mã SV2026001.",
-    "complexity": "Medium"
+    "type": "availability_lookup",
+    "question": "Kiểm tra giúp tôi phòng trống cho 8 người lúc 09:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu.",
+    "expected_behavior": "Agent gọi check_room_availability, trả về các phòng đủ sức chứa, có máy chiếu và không bị trùng lịch; không tạo booking.",
+    "complexity": "Medium",
+    "expectations": {
+      "expected_tool_sequence": ["check_room_availability"],
+      "expected_final_status": "SUCCESS",
+      "max_tool_calls": 1,
+      "must_not_book": true,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC03",
-    "type": "appointment_booking",
-    "question": "TODO: [Học viên tự viết câu hỏi yêu cầu Agent đặt lịch hẹn tư vấn học vụ]",
-    "expected_behavior": "Agent tự động phát sinh Tool Call 'schedule_appointment' với đúng thời gian và thông tin sinh viên.",
-    "complexity": "Medium"
+    "type": "explicit_room_booking",
+    "question": "Đặt phòng R201 lúc 13:00 ngày 15/09/2026 trong 60 phút cho Nguyễn Văn An để họp nhóm.",
+    "expected_behavior": "Agent gọi create_room_booking cho R201; backend kiểm tra phòng và trả về booking thành công với mã không trùng lặp.",
+    "complexity": "Medium",
+    "expectations": {
+      "expected_tool_sequence": ["create_room_booking"],
+      "expected_final_status": "SUCCESS",
+      "max_tool_calls": 1,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC04",
-    "type": "multi_step_reasoning",
-    "question": "TODO: [Học viên tự viết câu hỏi yêu cầu Agent suy luận ReAct đa bước (Tra cứu -> Đặt lịch với Cố vấn)]",
-    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: Tra cứu cố vấn học tập của sinh viên trước, sau đó tiến hành đặt lịch hẹn.",
-    "complexity": "High"
+    "type": "multi_step_booking",
+    "question": "Tôi cần phòng cho 10 người lúc 14:00 ngày 15/09/2026 trong 90 phút, cần máy chiếu. Hãy tìm phòng phù hợp rồi đặt luôn giúp tôi, người đặt là Nguyễn Văn An.",
+    "expected_behavior": "Agent trước hết gọi check_room_availability, xem Observation, chọn một room_id thực sự phù hợp rồi gọi create_room_booking và chỉ trả lời sau khi booking thành công.",
+    "complexity": "High",
+    "expectations": {
+      "expected_tool_sequence": ["check_room_availability", "create_room_booking"],
+      "expected_final_status": "SUCCESS",
+      "min_tool_calls": 2,
+      "booking_room_must_come_from_availability": true,
+      "must_have_final_answer": true
+    }
   },
   {
     "id": "TC05",
-    "type": "edge_case_handling",
-    "question": "TODO: [Học viên tự viết câu hỏi tra cứu mã sinh viên không tồn tại (ví dụ SV9999999)]",
-    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
-    "complexity": "Medium"
+    "type": "negative_capacity_case",
+    "question": "Tôi cần phòng cho 25 người lúc 14:00 ngày 15/09/2026 trong 60 phút, cần máy chiếu. Hãy tìm và đặt phòng nếu có.",
+    "expected_behavior": "Agent nhận NO_AVAILABLE_ROOM vì không có phòng đủ sức chứa, không gọi create_room_booking và giải thích rõ rằng booking chưa được tạo.",
+    "complexity": "Medium",
+    "expectations": {
+      "expected_tool_sequence": ["check_room_availability"],
+      "expected_final_status": "NO_AVAILABLE_ROOM",
+      "max_tool_calls": 1,
+      "must_not_book": true,
+      "must_have_final_answer": true
+    }
   }
 ]
