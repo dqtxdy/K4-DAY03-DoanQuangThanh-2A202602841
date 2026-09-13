@@ -42,8 +42,8 @@ class MockOfflineProvider(BaseLLMProvider):
             return {
                 "type": "tool_call",
                 "tool_name": "schedule_appointment",
-                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
-                "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
+                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "Nguyễn Văn An", "facility_type": "phòng họp có máy chiếu"},
+                "thought": "Người dùng yêu cầu đặt phòng họp cho SV2026001. Tôi sẽ gọi tool schedule_appointment."
             }
         elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
             return {

@@ -3,9 +3,9 @@
     "step": 1,
     "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn, tôi là Trợ lý Tác tử Đặt Phòng họp & Thiết bị của Đại học VinUni. Về câu hỏi liên quan đến quy chế học vụ cơ bản, tôi không có thông tin này. Tôi chỉ có thể hỗ trợ bạn trong việc tra cứu thông tin học vụ của sinh viên, kiểm tra phòng trống, thiết bị và tạo booking phòng họp.\n\nBạn có muốn tôi giúp gì về các vấn đề này không?",
+    "latency_ms": 2421.73
   },
   {
     "step": 1,
@@ -15,15 +15,116 @@
     "arguments": {
       "student_id": "SV2026001"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026001",
+      "data": {
+        "full_name": "Nguyễn Văn An",
+        "class": "AI-K4",
+        "gpa": 3.85,
+        "email": "an.nv@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "PGS.TS Nguyễn Văn A"
+      }
+    },
+    "latency_ms": 1503.87
   },
   {
     "step": 2,
     "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
     "action_type": "FINAL_ANSWER",
     "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
+    "output": "Kết quả tra cứu cho sinh viên SV2026001 (Nguyễn Văn An): Lớp AI-K4, GPA: 3.85, Email: an.nv@vinuni.edu.vn, Trạng thái: Đang học, Cố vấn: PGS.TS Nguyễn Văn A.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "advisor_name": "Nguyễn Văn An",
+      "datetime_str": "14:00 15/09/2026",
+      "student_id": "SV2026001",
+      "facility_type": "phòng họp có máy chiếu"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "BK-SV2026001-99",
+      "student_id": "SV2026001",
+      "datetime": "14:00 15/09/2026",
+      "advisor": "Nguyễn Văn An",
+      "facility": "phòng họp có máy chiếu",
+      "message": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV2026001 vào lúc 14:00 15/09/2026."
+    },
+    "latency_ms": 2395.8
+  },
+  {
+    "step": 2,
+    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV2026001 vào lúc 14:00 ngày 15/09/2026, người phụ trách là Nguyễn Văn An.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV2026001 vào lúc 14:00 15/09/2026.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Tôi cần tổ chức buổi họp cho sinh viên SV2026001 lúc 09:00 ngày 16/09/2026. Hãy kiểm tra thông tin người phụ trách của sinh viên, sau đó đặt một phòng họp có máy chiếu.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "academic_query",
+    "arguments": {
+      "student_id": "SV2026001"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026001",
+      "data": {
+        "full_name": "Nguyễn Văn An",
+        "class": "AI-K4",
+        "gpa": 3.85,
+        "email": "an.nv@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "PGS.TS Nguyễn Văn A"
+      }
+    },
+    "latency_ms": 2823.22
+  },
+  {
+    "step": 2,
+    "query": "Tôi cần tổ chức buổi họp cho sinh viên SV2026001 lúc 09:00 ngày 16/09/2026. Hãy kiểm tra thông tin người phụ trách của sinh viên, sau đó đặt một phòng họp có máy chiếu.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Kết quả tra cứu cho sinh viên SV2026001 (Nguyễn Văn An): Lớp AI-K4, GPA: 3.85, Email: an.nv@vinuni.edu.vn, Trạng thái: Đang học, Cố vấn: PGS.TS Nguyễn Văn A.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV9999999 vào lúc 10:00 ngày 17/09/2026, người phụ trách là Trần Thị Bình.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "advisor_name": "Trần Thị Bình",
+      "student_id": "SV9999999",
+      "datetime_str": "10:00 17/09/2026",
+      "facility_type": "phòng họp có máy chiếu"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "BK-SV9999999-99",
+      "student_id": "SV9999999",
+      "datetime": "10:00 17/09/2026",
+      "advisor": "Trần Thị Bình",
+      "facility": "phòng họp có máy chiếu",
+      "message": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV9999999 vào lúc 10:00 17/09/2026."
+    },
+    "latency_ms": 1950.35
+  },
+  {
+    "step": 2,
+    "query": "Hãy đặt phòng họp có máy chiếu cho sinh viên SV9999999 vào lúc 10:00 ngày 17/09/2026, người phụ trách là Trần Thị Bình.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đã kiểm tra phòng/thiết bị và đặt booking phòng họp có máy chiếu cho SV9999999 vào lúc 10:00 17/09/2026.",
     "latency_ms": 10.0
   }
 ]
